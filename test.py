@@ -27,7 +27,7 @@ def mask_bert_sent(text, model, tokenizer):
         else:
             masktext = text[:match.start()] + "[MASK]" + text[match.end():]
         print ("Masktext: ", masktext)
-        print(unmasker(masktext))
+        print(unmasker(masktext, targets=[match.group()]))
     return
 
 
