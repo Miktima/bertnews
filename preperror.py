@@ -159,14 +159,18 @@ articles = pd.read_json(StringIO(read_data), orient='records')
 
 # pst = nltk.PunktSentenceTokenizer()
 sentList = []
-pattern = re.compile(r"^[\w]+,\s\d+.+РИА Новости")
+pattern = re.compile(r"\n[\w]+,\s\d+.+РИА Новости", re.IGNORECASE)
+patred = re.compile(r"прим. ред.", re.IGNORECASE)
 for ind in articles.index:
     sentArticle = nltk.tokenize.sent_tokenize(articles['Article'][ind], language="russian")
     for s in sentArticle:
         riamatch = pattern.findall(s)
         if riamatch:
-            print (s)
-            pass
+            s = pattern.sub("", s)
+        w = nltk.tokenize.word_tokenize(s, language="russian")
+        matchred = patred.search(s)
+        if len(w) <= 3 or matchred:
+            print (s)           
         else:
             sentList.append(s)
 
@@ -185,11 +189,25 @@ random.shuffle(sentList)
 
 sentError = GenError()
 i = 0
-listEr = []
+listGenEr = []
 for row in sentList:
-    listEr.append(sentError.getErr(row) + "\n")
+    listGenEr.append(sentError.getErr(row) + "\n")
     i += 1
     if i == nadd:
         break
 with open('errorsents2.txt', 'w') as file:
-    file.writelines(listEr)
+    file.writelines(listGenEr)
+
+datanews = pd.DataFrame({"text": [], "label": []})
+# checked data
+for s in sentList:
+    datanews.loc[len(datanews.index)] = [s, 1]
+# real error data
+for s in error_list:
+    datanews.loc[len(datanews.index)] = [s, 0]
+# generated error data
+for s in listGenEr:
+    datanews.loc[len(datanews.index)] = [s, 0]
+
+datanews.to_json('FullDN.json') 
+
