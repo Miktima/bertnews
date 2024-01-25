@@ -157,22 +157,27 @@ with open('datanews.json', encoding="utf-8") as f:
 read_data = read_data.replace('\n][\n', ',\n')
 articles = pd.read_json(StringIO(read_data), orient='records')
 
-# pst = nltk.PunktSentenceTokenizer()
 sentList = []
 pattern = re.compile(r"\n[\w]+,\s\d+.+РИА Новости", re.IGNORECASE)
 patred = re.compile(r"прим. ред.", re.IGNORECASE)
 for ind in articles.index:
-    sentArticle = nltk.tokenize.sent_tokenize(articles['Article'][ind], language="russian")
-    for s in sentArticle:
-        riamatch = pattern.findall(s)
-        if riamatch:
-            s = pattern.sub("", s)
-        w = nltk.tokenize.word_tokenize(s, language="russian")
-        matchred = patred.search(s)
-        if len(w) <= 3 or matchred:
-            print (s)           
-        else:
-            sentList.append(s)
+    # remove article with "прим. ред."
+    matchred = patred.search(articles['Article'][ind])
+    if matchred:
+        print ("Artcile with <прим. ред.> removed - ", articles['URL'][ind])
+    else:
+        sentArticle = nltk.tokenize.sent_tokenize(articles['Article'][ind], language="russian")
+        for s in sentArticle:
+            riamatch = pattern.findall(s)
+            if riamatch:
+                s = pattern.sub("", s)
+            w = nltk.tokenize.word_tokenize(s, language="russian")
+            matchred = patred.search(s)
+            # sentences with 3 or less words removed
+            if len(w) <= 3:
+                print ("Sentence removed: ", s)           
+            else:
+                sentList.append(s)
 
 error_list = []
 with open('errorsents.txt', encoding="utf-8") as fe:
@@ -209,5 +214,6 @@ for s in error_list:
 for s in listGenEr:
     datanews.loc[len(datanews.index)] = [s, 0]
 
-datanews.to_json('FullDN.json') 
+with open('FullDN.json', 'w', encoding='utf-8') as file:
+    datanews.to_json(file, force_ascii=False)
 
