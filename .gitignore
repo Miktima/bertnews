@@ -4,3 +4,4 @@ lib/
 share/
 lib64
 Scripts/
+test-trainer/
