@@ -33,7 +33,7 @@ def mask_bert_sent(text, model, tokenizer):
 
 # print(embed_bert_cls('привет мир', model, tokenizer).shape)
 
-text = "После начала российской военной спецоперации на Украине западные страны усилили санкционное давление на Москву"
+text = "После начала российской военной спецоперации на Украине западные страны усилили санкционное давление на Москву."
 mask_bert_sent(text, "cointegrated/rubert-tiny2", tokenizer)
 
 
