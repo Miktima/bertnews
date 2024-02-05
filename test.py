@@ -42,17 +42,22 @@ def mask_bert_sent(text, model, tokenizer):
 Как подчеркивал сам венгерский премьер, такое развитие событий привело бы к армагеддону. Он заявил, что европейцам 50 миллиардов евро нужны не меньше, чем украинцам, но предложил компромисс: не выделять всю сумму сразу на четыре года, а утверждать финансирование для Киева ежегодно и единогласно.'''
     sentArticle = nltk.tokenize.sent_tokenize(text, language="russian")
     listErr = []
-
+    i = 0
     for s in sentArticle:
+        if i == 1:
+            break
         print (s)
         iter = p.finditer(s)
+        j = 0
         for match in iter:
+            if j == 3:
+                break
             if match.start() == 0:
-                masktext = "[MASK]" + text[match.end():]
-            elif match.end() == len(text):
-                masktext = text[:match.start()] + "[MASK]"
+                masktext = "[MASK]" + s[match.end():]
+            elif match.end() == len(s):
+                masktext = s[:match.start()] + "[MASK]"
             else:
-                masktext = text[:match.start()] + "[MASK]" + text[match.end():]
+                masktext = s[:match.start()] + "[MASK]" + s[match.end():]
             print (masktext)
             res = unmasker(masktext, targets=[match.group()])
             if res[0]['score'] < tr:
@@ -63,6 +68,8 @@ def mask_bert_sent(text, model, tokenizer):
                     "prob": res[0]['score']
                 }
                 listErr.append(errorrDesc)
+            j += 1
+        i += 1
     return listErr
 
 
