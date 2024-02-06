@@ -5,3 +5,4 @@ share/
 lib64
 Scripts/
 test-trainer/
+processed-ria.json

@@ -18,27 +18,39 @@ class tagStripper(HTMLParser):
         return self.text.getvalue()
 
 
-with open('ria_20.json', encoding="utf-8") as f:
+with open('processed-ria.json', encoding="utf-8") as f:
     read_list = f.readlines()
 
 sentList = []
-pattern = re.compile(r"^[\w]+,\s\d+[\w\-—\s]+риа новости[,\s\w]*.", re.IGNORECASE)
+ncount = 0
+nlimit = 2000
+pattern = re.compile(r"[\w]+,\s\d+[\w\-—\s]+риа новости[,\s\w]*.", re.IGNORECASE)
 for l in read_list:
     d = json.loads(l)
+    t = re.sub('&nbsp;', ' ', d['text'])
+    t = re.sub('&mdash;', '-', t)
     parser = tagStripper()
-    parser.feed(d['text'])
+    parser.feed(t)
     tt = parser.get_data()
     riamatch = pattern.findall(tt)
     if riamatch:
         s = pattern.sub("", tt)
     else:
         s = tt
-    sentList.append(d['title'] + ". " + s)
+    title = re.sub('&nbsp;', ' ', d['title'])
+    title = re.sub('&mdash;', '-', title)
+    sentList.append(title + ". " + s)
+    ncount += 1
+    if ncount % 10000 == 0:
+        print ("Number of articles: ", ncount)
+    if ncount == nlimit:
+        break
 
-datanews = pd.DataFrame({"text": [], "label": []})
+nrow = 0
+labels = [1] * len(sentList)
+datanews = pd.DataFrame(list(zip(sentList, labels)))
+datanews.columns =['text', 'label']
 # checked data
-for s in sentList:
-    datanews.loc[len(datanews.index)] = [s, 1]
 
 with open('gitriaDN.json', 'w', encoding='utf-8') as file:
     datanews.to_json(file, force_ascii=False)
