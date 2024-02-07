@@ -23,27 +23,29 @@ with open('processed-ria.json', encoding="utf-8") as f:
 
 sentList = []
 ncount = 0
-nlimit = 2000
+nfrom = 0
+nlimit = 3000
 pattern = re.compile(r"[\w]+,\s\d+[\w\-—\s]+риа новости[,\s\w]*.", re.IGNORECASE)
 for l in read_list:
-    d = json.loads(l)
-    t = re.sub('&nbsp;', ' ', d['text'])
-    t = re.sub('&mdash;', '-', t)
-    parser = tagStripper()
-    parser.feed(t)
-    tt = parser.get_data()
-    riamatch = pattern.findall(tt)
-    if riamatch:
-        s = pattern.sub("", tt)
-    else:
-        s = tt
-    title = re.sub('&nbsp;', ' ', d['title'])
-    title = re.sub('&mdash;', '-', title)
-    sentList.append(title + ". " + s)
+    if ncount >= nfrom:
+        d = json.loads(l)
+        t = re.sub('&nbsp;', ' ', d['text'])
+        t = re.sub('&mdash;', '-', t)
+        parser = tagStripper()
+        parser.feed(t)
+        tt = parser.get_data()
+        riamatch = pattern.findall(tt)
+        if riamatch:
+            s = pattern.sub("", tt)
+        else:
+            s = tt
+        title = re.sub('&nbsp;', ' ', d['title'])
+        title = re.sub('&mdash;', '-', title)
+        sentList.append(title + ". " + s)
     ncount += 1
     if ncount % 10000 == 0:
         print ("Number of articles: ", ncount)
-    if ncount == nlimit:
+    if ncount == nlimit + nfrom:
         break
 
 nrow = 0
