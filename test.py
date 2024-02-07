@@ -33,45 +33,45 @@ class getContent(HTMLParser):
             self.result += data
 
 def mask_bert_sent(text, model, tokenizer):
-    # maskin whole text and return errors if available
+    # masking whole text and return errors if available
     tr = 0.0001 #threshold of the error (parameter !!!)
     unmasker = pipeline("fill-mask", model=model, tokenizer=tokenizer)
     p = re.compile(r'[\w-]+')
-    text = '''Ранее в четверг лидеры Европейского союз единогласно согласовали выделение Украине макрофинансовой помощи в размере 50 миллиардов евро на период до 2027 года с условием ежегодной отчетности со стороны ЕК и дебатов в Евросовете. Как сообщил премьер-министр Польши Дональд Туск, главу венгерского правительства Виктора Орбана "удалось убедить".
-Позиция Будапешта оставалась главным препятствием для выделения денег киевским властям. Как выяснила газета Financial Times, лидеры стран Евросоюза могли публично объявить на саммите о неконструктивном поведении Орбана и отказать Венгрии в разморозке средств из европейских фондов.
-Как подчеркивал сам венгерский премьер, такое развитие событий привело бы к армагеддону. Он заявил, что европейцам 50 миллиардов евро нужны не меньше, чем украинцам, но предложил компромисс: не выделять всю сумму сразу на четыре года, а утверждать финансирование для Киева ежегодно и единогласно.'''
     sentArticle = nltk.tokenize.sent_tokenize(text, language="russian")
     listErr = []
-    i = 0
+    ind = 0
     for s in sentArticle:
-        if i == 1:
-            break
-        print (s)
+        ind = text.index(s)
         iter = p.finditer(s)
-        j = 0
         for match in iter:
-            if j == 3:
-                break
             if match.start() == 0:
                 masktext = "[MASK]" + s[match.end():]
             elif match.end() == len(s):
                 masktext = s[:match.start()] + "[MASK]"
             else:
                 masktext = s[:match.start()] + "[MASK]" + s[match.end():]
-            print (masktext)
             res = unmasker(masktext, targets=[match.group()])
             if res[0]['score'] < tr:
                 errorrDesc = {
                     "word": match.group(),
-                    "start": match.start(),
-                    "end": match.end(),
+                    "start": ind + match.start(),
+                    "end": ind + match.end(),
                     "prob": res[0]['score']
                 }
                 listErr.append(errorrDesc)
-            j += 1
-        i += 1
     return listErr
 
+def addtags(inittext, tags, errors):
+	# Функция добавления тегов к найденным в статье ошибкам
+	# на входе: содержание статьи, срез с начальным и конечным тегами и структура с ошибками
+	# на выходе - статья с тегами вокруг ошибок
+	article_err = ""
+	startPos = 0
+	for e in errors:
+		article_err += inittext[startPos:e['start']] + tags[0] + inittext[e['start']:e['end']] + tags[1]
+		startPos = e['end']
+	article_err += inittext[startPos:]
+	return article_err
 
 urllib3.disable_warnings()
 nltk.download('punkt')
@@ -82,7 +82,7 @@ headers = {
     }
 
 modelpath = "../model/fine-train"
-tokenizer = AutoTokenizer.from_pretrained("DeepPavlov/rubert-base-cased")
+tokenizer = AutoTokenizer.from_pretrained("ai-forever/ruBert-base")
 model = AutoModel.from_pretrained(modelpath)
 
 logging.set_verbosity_error()
@@ -103,6 +103,7 @@ if args.xml:
     
     i = 0
     parser = getContent("div", [("class", "article__text")])
+    html_err = ""
     for item in root.iter('item'):
         if i == 5:
             link = item.find("link").text
@@ -110,21 +111,24 @@ if args.xml:
             htmlResponse = requests.get(link, headers=headers, verify=False)
             parser.feed((htmlResponse.content).decode('utf-8'))
             print ("Link: ", link)
-            html_body += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
+            html_err += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
             print ("---------------------")
-            html_body += "<p>"
-            # print (parser.result)
             inittext = parser.result
             errors = mask_bert_sent(inittext, modelpath, tokenizer)
-            textwe = ""
+            # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
             if len(errors) > 0:
+                html_err += "<p>"
+                textwe = addtags(inittext, ['<mark>', '</mark>'], errors)
                 for e in errors:
-                    print (e)
-            else:
-                textwe = inittext
-            html_body += textwe
+                    print (f"Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}")
+                    html_err += f"<p>Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}</p>\n"
+                print ("Article with errors: ", textwe)
+                html_err += "<p>" + textwe + "</p>\n"
+            html_err += "<br><br>\n"
         i += 1
 else:
     print ("Wrong key")
 
-
+# Выводим результаты проверки в файл
+with open('errors.html', 'w', encoding='utf-8') as file:
+    file.write(html_body+html_err+"</body>")
