@@ -10,13 +10,15 @@ read_data = read_data.replace('\n][\n', ',\n')
 articles = pd.read_json(StringIO(read_data), orient='records')
 
 sentList = []
-pattern = re.compile(r"\n[\w]+,\s\d+.+РИА Новости", re.IGNORECASE)
+# "РИА Новости" не убираем, а позле заголовка ставим точку
+#pattern = re.compile(r"\n[\w]+,\s\d+.+РИА Новости", re.IGNORECASE)
 for ind in articles.index:
-    riamatch = pattern.findall(articles['Article'][ind])
-    if riamatch:
-        s = pattern.sub("", articles['Article'][ind])
-    else:
-        s = articles['Article'][ind]
+#    riamatch = pattern.findall(articles['Article'][ind])
+#    if riamatch:
+#        s = pattern.sub("", articles['Article'][ind])
+#    else:
+#        s = articles['Article'][ind]
+    s = re.sub("\n", ". ", articles['Article'][ind])
     sentList.append(s)
 
 datanews = pd.DataFrame({"text": [], "label": []})

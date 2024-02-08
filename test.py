@@ -34,7 +34,7 @@ class getContent(HTMLParser):
 
 def mask_bert_sent(text, model, tokenizer):
     # masking whole text and return errors if available
-    tr = 0.0001 #threshold of the error (parameter !!!)
+    tr = 0.00001 #threshold of the error (parameter !!!)
     unmasker = pipeline("fill-mask", model=model, tokenizer=tokenizer)
     p = re.compile(r'[\w-]+')
     sentArticle = nltk.tokenize.sent_tokenize(text, language="russian")
@@ -87,9 +87,15 @@ model = AutoModel.from_pretrained(modelpath)
 
 logging.set_verbosity_error()
 
+html_body = '<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1">\
+    		<meta http-equiv="X-UA-Compatible" content="IE=edge"> <title>Article errors</title> </head> <body>'
+html_err = ""
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--xml", help="use https://ria.ru/export/rss2/archive/index.xml for parsing",\
                     action="store_true")
+parser.add_argument("--url", help="specify the URL artcile for parsing", type=str)
+parser.add_argument("--file", help="specify the file artcile for parsing", type=str)
 args = parser.parse_args()
 
 if args.xml:
@@ -97,35 +103,67 @@ if args.xml:
     xmlResponse = requests.get(xmlUrl, headers=headers, verify=False)
     
     root = ET.fromstring(xmlResponse.content)
-    
-    html_body = '<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1">\
-    		<meta http-equiv="X-UA-Compatible" content="IE=edge"> <title>Article errors</title> </head> <body>'
-    
-    i = 0
+
     parser = getContent("div", [("class", "article__text")])
-    html_err = ""
     for item in root.iter('item'):
-        if i == 5:
-            link = item.find("link").text
-            article = ""
-            htmlResponse = requests.get(link, headers=headers, verify=False)
-            parser.feed((htmlResponse.content).decode('utf-8'))
-            print ("Link: ", link)
-            html_err += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
-            print ("---------------------")
-            inittext = parser.result
-            errors = mask_bert_sent(inittext, modelpath, tokenizer)
-            # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
-            if len(errors) > 0:
-                html_err += "<p>"
-                textwe = addtags(inittext, ['<mark>', '</mark>'], errors)
-                for e in errors:
-                    print (f"Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}")
-                    html_err += f"<p>Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}</p>\n"
-                print ("Article with errors: ", textwe)
-                html_err += "<p>" + textwe + "</p>\n"
-            html_err += "<br><br>\n"
-        i += 1
+        link = item.find("link").text
+        article = ""
+        htmlResponse = requests.get(link, headers=headers, verify=False)
+        parser.feed((htmlResponse.content).decode('utf-8'))
+        print ("Link: ", link)
+        html_err += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
+        print ("---------------------")
+        inittext = parser.result
+        errors = mask_bert_sent(inittext, modelpath, tokenizer)
+        # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
+        if len(errors) > 0:
+            html_err += "<p>"
+            textwe = addtags(inittext, ['<mark>', '</mark>'], errors)
+            for e in errors:
+                print (f"Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}")
+                html_err += f"<p>Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}</p>\n"
+            print ("Article with errors: ", textwe)
+            html_err += "<p>" + textwe + "</p>\n"
+        html_err += "<br><br>\n"
+elif len(args.url) > 0:
+    link = args.url
+    article = ""
+    htmlResponse = requests.get(link, headers=headers, verify=False)
+    parser = getContent("div", [("class", "article__text")])
+    parser.feed((htmlResponse.content).decode('utf-8'))
+    print ("Link: ", link)
+    html_err += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
+    print ("---------------------")
+    inittext = parser.result
+    errors = mask_bert_sent(inittext, modelpath, tokenizer)
+    # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
+    if len(errors) > 0:
+        html_err += "<p>"
+        textwe = addtags(inittext, ['<mark>', '</mark>'], errors)
+        for e in errors:
+            print (f"Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}")
+            html_err += f"<p>Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}</p>\n"
+        print ("Article with errors: ", textwe)
+        html_err += "<p>" + textwe + "</p>\n"
+    html_err += "<br><br>\n"
+elif len(args.file) > 0:
+    articlefile = args.file
+    with open(articlefile, encoding="utf-8") as f:
+        inittext = f.read()
+    print ("File: ", articlefile)
+    html_err += "<p>File with the article: " + articlefile + "</p>"
+    print ("---------------------")
+    errors = mask_bert_sent(inittext, modelpath, tokenizer)
+    # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
+    if len(errors) > 0:
+        html_err += "<p>"
+        textwe = addtags(inittext, ['<mark>', '</mark>'], errors)
+        for e in errors:
+            print (f"Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}")
+            html_err += f"<p>Incorrect world: {e['word']}, start: {e['start']}, end: {e['end']}, prob: {e['prob']}</p>\n"
+        print ("Article with errors: ", textwe)
+        html_err += "<p>" + textwe + "</p>\n"
+    html_err += "<br><br>\n"
 else:
     print ("Wrong key")
 
