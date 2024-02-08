@@ -22,9 +22,9 @@ with open('processed-ria.json', encoding="utf-8") as f:
     read_list = f.readlines()
 
 sentList = []
-ncount = 0
-nfrom = 0
-nlimit = 3000
+ncount = 0 # счетчик статей
+nfrom = 4000 # начальная статья, с которой начинается запись
+nlimit = 1000 # количество статей
 pattern = re.compile(r"[\w]+,\s\d+[\w\-—\s]+риа новости[,\s\w]*.", re.IGNORECASE)
 for l in read_list:
     if ncount >= nfrom:
