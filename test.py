@@ -4,6 +4,7 @@ import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 import urllib3
 import re
+import time
 import argparse
 from transformers import AutoTokenizer, AutoModel, pipeline, logging
 
@@ -73,6 +74,7 @@ def addtags(inittext, tags, errors):
 	article_err += inittext[startPos:]
 	return article_err
 
+initTime = time.time()
 urllib3.disable_warnings()
 nltk.download('punkt')
 
@@ -81,10 +83,11 @@ headers = {
     'user-agent': userAgent
     }
 
-modelpath = "../model/fine-train"
+modelpath = "../model/fine-train2"
 tokenizer = AutoTokenizer.from_pretrained("ai-forever/ruBert-base")
 model = AutoModel.from_pretrained(modelpath)
 
+print ("Time initialization: ", time.time() - initTime)
 logging.set_verbosity_error()
 
 html_body = '<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1">\
@@ -128,14 +131,18 @@ if args.xml:
 elif len(args.url) > 0:
     link = args.url
     article = ""
+    print ("Before request: ", time.time() - initTime)
     htmlResponse = requests.get(link, headers=headers, verify=False)
     parser = getContent("div", [("class", "article__text")])
     parser.feed((htmlResponse.content).decode('utf-8'))
+    print ("After request: ", time.time() - initTime)
     print ("Link: ", link)
     html_err += "<p>Link to the article: <a href='" + link + "'>" + link + "</a></p>"
     print ("---------------------")
     inittext = parser.result
     errors = mask_bert_sent(inittext, modelpath, tokenizer)
+    print ("After masking: ", time.time() - initTime)
+
     # errors = mask_bert_sent(inittext.casefold(), modelpath, tokenizer)
     if len(errors) > 0:
         html_err += "<p>"
@@ -170,3 +177,4 @@ else:
 # Выводим результаты проверки в файл
 with open('errors.html', 'w', encoding='utf-8') as file:
     file.write(html_body+html_err+"</body>")
+print ("The end: ", time.time() - initTime)
