@@ -51,7 +51,7 @@ def mask_bert_sent(text, model, tokenizer):
                 masktext = s[:match.start()] + "[MASK]"
             else:
                 masktext = s[:match.start()] + "[MASK]" + s[match.end():]
-            res = unmasker(masktext, targets=[match.group()])
+            res = unmasker(masktext, targets=[match.group()], batch_size=8)
             if res[0]['score'] < tr:
                 errorrDesc = {
                     "word": match.group(),
@@ -83,7 +83,7 @@ headers = {
     'user-agent': userAgent
     }
 
-modelpath = "../model/fine-train2"
+modelpath = "../model/fine-train128"
 tokenizer = AutoTokenizer.from_pretrained("ai-forever/ruBert-base")
 model = AutoModel.from_pretrained(modelpath)
 
@@ -128,7 +128,7 @@ if args.xml:
             print ("Article with errors: ", textwe)
             html_err += "<p>" + textwe + "</p>\n"
         html_err += "<br><br>\n"
-elif len(args.url) > 0:
+elif args.url is not None:
     link = args.url
     article = ""
     print ("Before request: ", time.time() - initTime)
@@ -153,7 +153,7 @@ elif len(args.url) > 0:
         print ("Article with errors: ", textwe)
         html_err += "<p>" + textwe + "</p>\n"
     html_err += "<br><br>\n"
-elif len(args.file) > 0:
+elif args.file is not None:
     articlefile = args.file
     with open(articlefile, encoding="utf-8") as f:
         inittext = f.read()
