@@ -83,8 +83,8 @@ headers = {
     'user-agent': userAgent
     }
 
-modelpath = "../model/fine-train128"
-tokenizer = AutoTokenizer.from_pretrained("ai-forever/ruBert-base")
+modelpath = "../model/fine-train-roberta"
+tokenizer = AutoTokenizer.from_pretrained("ai-forever/ruRoberta-large")
 model = AutoModel.from_pretrained(modelpath)
 
 print ("Time initialization: ", time.time() - initTime)
