@@ -23,7 +23,7 @@ with open('processed-ria.json', encoding="utf-8") as f:
 
 sentList = []
 ncount = 0 # счетчик статей
-nlimit = 2000 # количество статей
+nlimit = 5000 # количество статей
 pattern = re.compile(r"[\w]+,\s\d+[\w\-—\s]+риа новости[,\s\w]*.", re.IGNORECASE)
 for l in read_list:
     d = json.loads(l)
