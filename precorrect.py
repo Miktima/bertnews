@@ -3,6 +3,7 @@ import pandas as pd
 from io import StringIO
 import random
 import re
+import html
 
 with open('datanews.json', encoding="utf-8") as f:
     read_data = f.read()
@@ -24,6 +25,7 @@ for ind in articles.index:
 datanews = pd.DataFrame({"text": [], "label": []})
 # checked data
 for s in sentList:
+    s = html.unescape(s)
     datanews.loc[len(datanews.index)] = [s, 1]
 
 with open('CorrectDN.json', 'w', encoding='utf-8') as file:
