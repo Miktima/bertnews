@@ -22,20 +22,28 @@ with open('EDWHITE5510.txt', encoding="utf-8") as f:
     read_list = f.readlines()
 
 artList = []
+indList = []
 artText = ''
 pattern = re.compile(r"-{4}(\d+)-{4}")
 i = 0
 for l in read_list:
     idmatch = pattern.search(l)
     if idmatch:
+        nln = 0
+        # Добавляем индекс при первом нахождении, а текст к этому индексу при втором
+        # Если индекс = 0, выходим 
         if len(artText) > 0:
-            artText['text'] = artText
-            artList.append(artDict)
-        artDict = {
-            'id': idmatch.group(1),
-            'text': ''
-        }
+            artList.append(artText)
+        if int(idmatch.group(1)) == 0:
+            break
+        else:
+            indList.append(idmatch.group(1))
     else:
+        # Ставим точку в конце заголовка (первай строка после индекса)
+        if nln == 0:
+            nln += 1
+            l = re.sub(r'\n', r'\.\n', l)
+        if re.match()
         cl = html.unescape(l)
         parser = tagStripper()
         parser.feed(cl)
