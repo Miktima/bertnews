@@ -38,7 +38,7 @@ for l in read_list:
         if int(idmatch.group(1)) == 0:
             break
         else:
-            indList.append(idmatch.group(1))
+            indList.append(int(idmatch.group(1)))
     else:
         # Ставим точку в конце заголовка (первай строка после индекса)
         if nln == 0:
@@ -52,9 +52,9 @@ for l in read_list:
             artText += clt
 
 datanews = pd.DataFrame(list(zip(artList, indList)))
-datanews.columns =['text', 'id']
+datanews.columns =['text', 'label']
 
-grp = datanews['id'].groupby(datanews['id']).filter(lambda x: len(x) > 1).value_counts()
+grp = datanews['label'].groupby(datanews['label']).filter(lambda x: len(x) > 1).value_counts()
 # checked data
 
 with open('editorriaDN.json', 'w', encoding='utf-8') as file:
