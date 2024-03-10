@@ -40,7 +40,7 @@ for l in read_list:
         else:
             indList.append(int(idmatch.group(1)))
     else:
-        # Ставим точку в конце заголовка (первай строка после индекса)
+        # Ставим точку в конце заголовка (первая строка после индекса)
         if nln == 0:
             nln += 1
             l = re.sub(r'\n', r'.\n', l)
