@@ -5,8 +5,8 @@ import urllib.parse
 import urllib3
 
 urllib3.disable_warnings()
-httpposturl = "https://speller.yandex.net/services/spellservice.json/checkText"
 
+# Закружаем предложения с ошибками
 with open('errorsents.txt', encoding="utf-8") as f:
     sentmarked_list = f.readlines()
 
@@ -14,6 +14,23 @@ errPattern = re.compile("_([\w\s-]+)_")
 sent_list = []
 errtup_list = []
 for s in sentmarked_list:
+    errIter = errPattern.finditer(s)
+    ss = re.sub("_", "", s)
+    sent_list.append(ss)
+    j = 0
+    errtup = []
+    for err in errIter:
+        errtup.append((err.start()-j*2, err.end()-2*(1 + j)))
+        j += 1
+    errtup_list.append(errtup)
+
+# Загружаем предложения без ошибок.
+# В последствии здесь тоже могут выявлены ошибки, поэтому также
+# формируем errors_pos
+with open('correctsents.txt', encoding="utf-8") as f:
+    sentcorrect_list = f.readlines()
+
+for s in sentcorrect_list:
     errIter = errPattern.finditer(s)
     ss = re.sub("_", "", s)
     sent_list.append(ss)
