@@ -24,8 +24,8 @@ with open('EDWHITE5510.txt', encoding="utf-8") as f:
 
 sentList = []
 pattern = re.compile(r"^[^-*\n\r\"\s]")
-nstart = 0
-nend = 1200
+nstart = 1201
+nend = 1500
 nl = 0
 for l in read_list:
     smatch = pattern.search(l)
@@ -43,6 +43,6 @@ for l in read_list:
             break
     nl += 1
 
-with open('corrrectsents.txt', 'w', encoding='utf-8') as file:
+with open('corrrectsents1.txt', 'w', encoding='utf-8') as file:
     file.writelines(sentList)
 
