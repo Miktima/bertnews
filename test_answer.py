@@ -23,23 +23,30 @@ def compute_similarity(input_string, reference_string):
 text_lst = [
     "Точные данные по поврежденном имуществу станут известны после поквартирного обхода.",
     "Сегодня наши войны могли помолиться и причастится перед святым образом.",
+    "По данным ведомства, в 10.55 был обстрелян так же Куйбышевский район Донецка двумя снарядами калибра 155 миллиметров и в 11.00 по Червоногвардейскому району Макеевки было выпущено три таких же снаряда.",
     "Конституционным суд украл мандат депутата от оппозиции, который народ предоставил БКС.",
     "Мужчина признан виновным по двумя статьям УК РФ: ч. 3 ст. 30, ч. 3 ст. 205 (покушение на теракт) и ч. 1 ст. 275 (госизмена).",
     "В Кремле заявляли, что накачивание Украиныоружием со стороны Запада не способствует успеху российско-украинских переговоров и будет иметь негативный эффект.",
     "Патриарх так же затронул вопрос о деятельности православных школ и гимназий, которых в стране, по его мнению, не хватает.",
     "Викторина, посвященной 80-летнию освобождения Новгорода от немецко-фашистских захватчиков, стартовала с середины февраля.",
-    "При этом Шаффер не исключил, что Россия могла начать новое продвижениеуже весной."
+    "При этом Шаффер не исключил, что Россия могла начать новое продвижениеуже весной.",
+    "\"Кандит зарегистрирован. Мы начинаем очень активную агитационную кампанию\", - сказал Блажеев журналистам.",
+    "Издание указало, что получило информацию о налогах Дональда Трампа более за чем 20 лет, включая \"сотни\" компаний, которые составляют его \"бизнес-империю\".",
+    "В 15:40 мск, по данным Downradar, на сервисе не было жалоб не работу Telegram."
 ]
 answer_lst = [
     "Точные данные по поврежденному имуществу станут известны после поквартирного обхода.",
     "Сегодня наши воины могли помолиться и причаститься перед святым образом.",
+    "По данным ведомства, в 10.55 был обстрелян также Куйбышевский район Донецка двумя снарядами калибра 155 миллиметров и в 11.00 по Червоногвардейскому району Макеевки было выпущено три таких же снаряда.",
     "Конституционный суд украл мандат депутата от оппозиции, который народ предоставил БКС.",
     "Мужчина признан виновным по двум статьям УК РФ: ч. 3 ст. 30, ч. 3 ст. 205 (покушение на теракт) и ч. 1 ст. 275 (госизмена).",
     "В Кремле заявляли, что накачивание Украины оружием со стороны Запада не способствует успеху российско-украинских переговоров и будет иметь негативный эффект.",
     "Патриарх также затронул вопрос о деятельности православных школ и гимназий, которых в стране, по его мнению, не хватает.",
     "Викторина, посвященная 80-летию освобождения Новгорода от немецко-фашистских захватчиков, стартовала с середины февраля.",
-    "При этом Шаффер не исключил, что Россия могла начать новое продвижение уже весной."
-
+    "При этом Шаффер не исключил, что Россия могла начать новое продвижение уже весной.",
+    "\"Кандидат зарегистрирован. Мы начинаем очень активную агитационную кампанию\", - сказал Блажеев журналистам.",
+    "Издание указало, что получило информацию о налогах Дональда Трампа более чем за 20 лет, включая \"сотни\" компаний, которые составляют его \"бизнес-империю\".",
+    "В 15:40 мск, по данным Downradar, на сервисе не было жалоб на работу Telegram."
 ]
 errw = []
 p = re.compile(r'[\w-]+')
@@ -53,74 +60,55 @@ for i in range(len(text_lst)):
 
     # Проходим по всем словам в исходном предложении
     for nw in range(len(sw_list)):
-        cs = compute_similarity(sw_list[nw], aw_list[nw+offset])
-        # Если merged = -1 (то есть правильное слово слито, то пропускаем цикл)
-        if offset > -1:
-            # Если похожесть между 1 и 0.8, то считаем, что это ошибка в одном слове (сдвиг = 0)
-            if cs < 1 and cs >=0.8:
-                errw.append((nw, 0))
-            # Если похожесть меньше либо равна 0.6, отрабатываем слияние и разделение слов
-            elif cs <=0.6:
-                # Если исходное слово меньше, то в результате слияние
-                if len(sw_list[nw]) < len(aw_list[nw+offset]):
-                    try:
-                        cs_merge = compute_similarity(sw_list[nw]+sw_list[nw+1], aw_list[nw+offset])
-                        # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
-                        if cs_merge <= 1 and cs_merge >=0.8:
-                            errw.append((nw, -1))
-                            merged = -1
-                            offset -= 1
-                        else:
-                            print(f'ERROR_MERGE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                    except:
-                        print(f'EXCEPTION_2: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                # Если исходное слово больше, то в результате разделение
-                elif len(sw_list[nw]) > len(aw_list[nw+offset]):
-                    try:
-                        cs_space = compute_similarity(sw_list[nw], aw_list[nw+offset]+aw_list[nw+offset+1])
-                        # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
-                        if cs_space <= 1 and cs_space >=0.8:
-                            errw.append((nw, 1))
-                            offset += 1
-                        else:
-                            print(f'ERROR_SPACE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                    except:
-                        print(f'EXCEPTION_1: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                else:
-                    print(f'ERROR_1: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-            elif cs < 0.8 and cs >=0.6:
-                # Если исходное слово меньше не менее, чем на два символа, то в результате слияние
-                if (len(aw_list[nw+offset]) - len(sw_list[nw])) >= 2:
-                    try:
-                        cs_merge = compute_similarity(sw_list[nw]+sw_list[nw+1], aw_list[nw+offset])
-                        # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
-                        if cs_merge <= 1 and cs_merge >=0.8:
-                            errw.append((nw, -1))
-                            merged = -1
-                            offset -= 1
-                        else:
-                            print(f'ERROR_MERGE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                    except:
-                        print(f'EXCEPTION_2: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                # Если исходное слово больше не менее, чем на 2 символа, то в результате разделение
-                elif (len(sw_list[nw]) - len(aw_list[nw+offset])) >= 2:
-                    try:
-                        cs_space = compute_similarity(sw_list[nw], aw_list[nw+offset]+aw_list[nw+offset+1])
-                        # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
-                        if cs_space <= 1 and cs_space >=0.8:
-                            errw.append((nw, 1))
-                            offset += 1
-                        else:
-                            print(f'ERROR_SPACE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                    except:
-                        print(f'EXCEPTION_1: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-                else:
-                    print(f'ERROR_2: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
-        else:
-            merged = 0
+      cs = compute_similarity(sw_list[nw], aw_list[nw+offset])
+      # print (cs, sw_list[nw], aw_list[nw+offset])
+      # Если merged = -1 (то есть правильное слово слито, то пропускаем цикл)
+      if merged > -1:
+        # Если похожесть между 1 и 0.8, то считаем, что это ошибка в одном слове (сдвиг = 0)
+        if cs < 1 and cs >=0.8:
+            errw.append((nw, 0))
+        # Если похожесть меньше 0.8, отрабатываем слияние и разделение слов
+        elif cs < 0.8:
+          # Если количество слов в результирующем предложении меньше 
+          # и исходное слово меньше чем на 2 символа, то в результате слияние
+          if len(aw_list) < len(sw_list) and (len(aw_list[nw+offset]) - len(sw_list[nw])) >= 2:
+              try:
+                  cs_merge = compute_similarity(sw_list[nw]+sw_list[nw+1], aw_list[nw+offset])
+                  # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
+                  if cs_merge <= 1 and cs_merge >=0.8:
+                      errw.append((nw, -1))
+                      merged = -1
+                      offset -= 1
+                  else:
+                      print(f'ERROR_MERGE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
+              except:
+                  print(f'EXCEPTION_MERGE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
+          # Если количество слов в результирующем предложении больше 
+          # и исходное слово больше чем на 2 символа, то в результате разделение
+          elif len(aw_list) > len(sw_list) and (len(sw_list[nw]) - len(aw_list[nw+offset])) >= 2:
+              try:
+                  cs_space = compute_similarity(sw_list[nw], aw_list[nw+offset]+aw_list[nw+offset+1])
+                  # При слиянии- разделении (дополненные) слова должны соответствовать друг другу
+                  if cs_space <= 1 and cs_space >=0.8:
+                      errw.append((nw, 1))
+                      offset += 1
+                  else:
+                      print(f'ERROR_SPACE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
+              except:
+                  print(f'EXCEPTION_SPACE: Word number: {nw}, input word: {sw_list[nw]}, output word: {aw_list[nw+offset]}, compute_similarity: {cs}')
+          # Если слова отличаются на один символ или меньше, считаем, что это одно слово
+          elif abs(len(sw_list[nw]) - len(aw_list[nw+offset])) <= 1:
+            errw.append((nw, 0))
+          # Если слова отличаются, то отмечаем как ошибку  
+          elif len(aw_list) == len(sw_list):
+            errw.append((nw, 0))
+      else:
+        merged = 0
     s_iter = p.finditer(s)
+    print (s)
     for idx, word in enumerate(s_iter):
         for e in errw:
              if idx == e[0]:
                  print(idx, word.group(), word.start(), word.end())
+    print("-------------------------------")
     errw = []
