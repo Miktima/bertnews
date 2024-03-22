@@ -1,4 +1,4 @@
-# RND LLM model for spelling news in Russian
+# R&D LLM model for spelling news in Russian
 ## Included files
 ### DATA corpus
 * **CorrectDN.json** - JSON file with corrected news articles. The articles were saved after editor reviews twice or more times and checked by
@@ -16,3 +16,6 @@
 * **f_score_speller.py** - calculate f-score for [Yandex Speller](https://yandex.ru/dev/speller/).
 * **gitriaload.py** - takes **first** *n* articles from https://github.com/RossiyaSegodnya/ria_news_dataset.
 * **gitriaload_rnd.py** - takes **random** *n* articles from https://github.com/RossiyaSegodnya/ria_news_dataset.
+* **precorrect.py** - generates **CorrectDN.json**
+* **preperror.py** - generates **FullDN.json**
+* **test_answer.py** - the algorithm test of finding error words from answer of m2m100 model.
