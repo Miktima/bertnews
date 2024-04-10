@@ -19,3 +19,15 @@
 * **precorrect.py** - generates **CorrectDN.json**
 * **preperror.py** - generates **FullDN.json**
 * **test_answer.py** - the algorithm test of finding error words from answer of m2m100 model.
+
+### Notebooks
+* **FT_MaskedLM.ipynb** - fine-tune of masked language modeles (excluding ruRoberta) (Colab)
+* **FT_MaskedLM_ruRoberta.ipynb** - fine-tune of the ruRoberta model (Colab)
+* **FT_M2M100.ipynb** - fine-tune RuM2M100-1.2B model (dev) (Colab)
+* **F_score_model.ipynb** - F-score calculation for masked language modeles (Colab)
+* **F_score_M2M100.ipynb** - F-score calculation by corrected words for RuM2M100-1.2B model (Colab)
+* **F_score_M2M100_token.ipynb** - F-score calculation by tokens for RuM2M100-1.2B model (Colab)
+* **Fscore.ipynb** - Results of F-score. **Fscore old.ipynb** - old version
+* **FT_AF_rubert_results.ipynb**, **FT_AF_ruRoberta_results.ipynb**, **FT_DeepPavlov_results.ipynb** - results of fine-tining
+* **LRate_ruBert-tiny2.ipynb** - Results of Leaning rate ruBert-tiny2
+* **Spell_article.ipynb** - spell-checking articles from https://ria.ru/. Checking URL = articleURL
